@@ -1,7 +1,9 @@
 {
   "name": "genie",
   "private": true,
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*"
+  ],
   "engines": {
     "node": "24.x"
   },
