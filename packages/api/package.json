@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "install:clean": "node -e \"fs.rmSync('node_modules', { recursive: true, force: true }); fs.rmSync('package-lock.json', { force: true })\" && npm i",
-    "dev": "node --env-file=config/.env.development --watch src/main.ts",
-    "lint": "eslint .",
+    "dev": "node --env-file-if-exists=config/.env.development --watch src/main.ts",
+    "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "start": "node --env-file-if-exists=config/.env.production src/main.ts",
-    "test": "node --env-file=config/.env.test --test --test-concurrency=1",
-    "typecheck": "tsc -b --noEmit"
+    "test": "node ../../scripts/run-tests.mjs",
+    "typecheck": "tsc --noEmit",
+    "format:check": "prettier --check ."
   },
   "imports": {
     "#src/*": "./src/*"
@@ -33,12 +33,13 @@
     "@types/express": "^5.0.6",
     "@types/livereload": "^0.9.5",
     "@types/morgan": "^1.9.10",
-    "@types/node": "^26.6.5",
+    "@types/node": "^24.19.2",
     "@types/supertest": "^7.2.1",
     "connect-livereload": "^0.6.1",
     "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-n": "^18.4.1",
+    "globals": "^17.13.0",
     "jiti": "^2.7.0",
     "livereload": "^0.10.3",
     "prettier": "^3.9.10",

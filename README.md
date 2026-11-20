@@ -1,179 +1,94 @@
-# Genie PoC
+# Genie
 
-This repository contains the proof of concept for **Genie**, a web-based workflow builder inspired by tools such as n8n. The project aims to let users create and automate workflows through a visual interface.
+Genie generates executable Helpdesk workflows from natural language. This repository currently provides the development workspace: a React/Vite starter and an Express API. Agent functionality will live inside the existing TypeScript backend; it is not implemented yet.
 
-The frontend is a React and Vite starter. The Express backend includes a sample users API backed by a local JSON file.
+## Quick Start
 
-## Technology stack
-
-- React and TypeScript for the frontend
-- Vite for local development and production builds
-- Express and TypeScript for the backend
-- Node.js 24 and npm workspaces for development tooling and package management
-- ESLint for static analysis and Prettier for formatting
-- GitHub Actions for continuous integration
-
-## Repository structure
-
-```text
-POC/
-├── .github/
-│   └── workflows/
-│       └── ci.yml
-├── packages/
-│   ├── api/
-│   │   ├── config/        # Local environment files
-│   │   ├── src/
-│   │   ├── tests/
-│   │   ├── package.json
-│   │   └── tsconfig.json
-│   └── web/
-│       ├── public/
-│       ├── src/
-│       ├── package.json
-│       └── vite.config.ts
-├── .gitignore
-├── .nvmrc
-├── package.json
-├── package-lock.json
-├── requirements.txt
-└── README.md
-```
-
-The root `package.json` defines `packages/*` as npm workspaces. The frontend is `@packages/web` and the backend is `@packages/api`. Both use the root `package-lock.json`.
-
-## Prerequisites
-
-- Git
-- Node.js 24 with its bundled npm
-- Access to the private `Graduation-HCMUS/POC` repository
-
-Install the Node.js version in `.nvmrc` or select it with a compatible version manager. CI uses the same file.
-
-## Getting started
+Use Git and [nvm](https://github.com/nvm-sh/nvm) (or nvm-windows with the version listed in `.nvmrc`). Run from the repository root:
 
 ```sh
 git clone https://github.com/Graduation-HCMUS/POC.git
 cd POC
+nvm install
+nvm use
 npm ci
 ```
 
-Run the commands below from the repository root.
+Node 24 is required. On nvm-windows, pass the version from `.nvmrc` explicitly to `nvm install` and `nvm use`. `npm ci` installs dependencies from the single root lockfile and automatically activates tracked Git hooks.
 
-## Local development
-
-### Frontend
+Terminal 1:
 
 ```sh
-npm run dev
+npm run dev:api
 ```
 
-Open the URL printed by Vite, usually `http://localhost:5173`. The development server reloads the application as you edit files in `packages/web/src/`.
-
-### Backend
-
-Create `packages/api/config/.env.development` with the following values. Create the `config` directory if needed.
-
-```dotenv
-NODE_ENV=development
-PORT=3000
-```
-
-Start Express in a separate terminal.
+Terminal 2:
 
 ```sh
-npm run dev --workspace @packages/api
+npm run dev:web
 ```
 
-Open `http://localhost:3000/api/users/all` to try the sample API.
+Open the URL printed by Vite (normally `http://localhost:5173`). The page displays **API connected** once React receives the health response through Vite's `/api` proxy. The starter counter remains available. Direct health: [localhost:3000/api/health](http://localhost:3000/api/health), returning `{"status":"ok"}`.
 
-## Lint, test, and build
+Validate the workspace:
 
-### Frontend
+```sh
+npm run check
+```
+
+No database service, LLM credentials or environment file is needed.
+
+## Daily development
+
+- `packages/web` (`@packages/web`): React + Vite + TypeScript.
+- `packages/api` (`@packages/api`): Express + TypeScript executed directly by Node 24. App construction is separate from the listener so tests can import it.
+- `scripts`: shared checks and native hook setup; `.githooks/pre-commit`: tracked hook.
+
+Equivalent launches: `npm run dev --workspace @packages/api` and `npm run dev --workspace @packages/web`. Root `npm run dev` starts only the frontend. Use two terminals; no combined launcher is required.
+
+Default API environment: `NODE_ENV=development`, `PORT=3000`. Optionally copy `packages/api/config/.env.example` to `packages/api/config/.env.development` and edit it. Local `.env` files are ignored. Existing shell variables take precedence over env-file values.
+
+If the API port changes, put `API_PROXY_TARGET=http://127.0.0.1:YOUR_PORT` in ignored `packages/web/.env.local`, then restart Vite. The proxy applies to the development server; `vite preview` is not a production API hosting setup.
+
+After `git pull`, an already activated hook uses the updated tracked files automatically; no Git configuration step is needed. Run `npm ci` when dependency manifests or the lockfile change. A newly cloned repository still requires its initial `npm ci`: clone/pull alone cannot activate Git hooks.
+
+Install dependencies from the root:
+
+```sh
+npm install <package> --workspace @packages/api
+npm install --save-dev <package> --workspace @packages/web
+```
+
+Commit the affected manifest and root `package-lock.json` together. Never create package-local lockfiles. The existing users API uses a demo JSON file; it is not shared infrastructure and is not safe for concurrent writes within one server.
+
+## Automatic pre-commit checks
+
+`npm ci` runs `prepare` → `setup-hooks`, configuring local `core.hooksPath=.githooks`. No hook-management dependency is required.
+
+The hook checks only staged `.js`, `.jsx`, `.ts`, `.tsx`, `.mjs` and `.cjs` files with ESLint and Prettier `--check`, using the appropriate workspace configuration. It checks staged content even for partially staged files and paths containing spaces. It never fixes/stages files or runs builds/full test suites. Fix failures, stage the intended corrections and retry. Files such as Markdown and CSS are checked by CI's repository-wide formatting gate, not pre-commit.
+
+## Manual checks and CI
 
 ```sh
 npm run lint
+npm run typecheck
+npm test
+npm run format:check
 npm run build
+npm run check
+npm run precommit
 ```
 
-Lint checks the frontend TypeScript files and Vite configuration with ESLint. Build runs TypeScript checking followed by Vite's production build. Generated files are written to `packages/web/dist/`.
+`check` runs formatting, lint, type checks, tests and the web production build, failing at the first unsuccessful gate. `build` bundles web into ignored `packages/web/dist`; run `check` for validation before contribution. API has no compilation step: `npm start --workspace @packages/api` runs source directly.
 
-To preview the production build locally after building, run the frontend's preview script.
+Both workspaces use Node's built-in test runner. API tests cover URI encoding and health with Supertest; web tests cover health response validation. Tests require no separately running server and fail if discovery/execution yields zero tests.
 
-```sh
-npm run preview --workspace @packages/web
-```
+Formatting intentionally follows nearest configuration: root/web omit semicolons; API retains its own style and import sorting. CI runs on pushes and PRs targeting `main`, uses `.nvmrc`, installs from the root lockfile and runs `npm run check` independently of hooks.
 
-Open the URL printed by Vite's preview server.
+## Troubleshooting
 
-### Backend
-
-```sh
-npm run lint --workspace @packages/api
-npm run typecheck --workspace @packages/api
-```
-
-For tests, create `packages/api/config/.env.test` with `NODE_ENV=test` and `PORT=3001`, each on its own line. Then run the API tests.
-
-```sh
-npm test --workspace @packages/api
-```
-
-`npm run format --workspace @packages/api` formats API source and tests with Prettier and sorts imports using `packages/api/.prettierrc.json`.
-
-## Pre-commit checks
-
-Install the npm dependencies with `npm ci`. The hook lives in `.git/hooks/pre-commit` and is installed locally in each clone that uses it. Run `npm run check:staged` to invoke the installed hook manually.
-
-- ESLint blocks errors and warnings in staged `.ts` and `.tsx` files.
-- Prettier checks staged `.ts`, `.tsx`, `.css`, `.html`, `.json`, `.md`, `.yml`, and `.yaml` files.
-- Ruff checks Python syntax, lint, and formatting for staged `.py` and `.pyi` files.
-
-For Python changes, install Ruff into a local environment. On Windows, use PowerShell.
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-```
-
-On macOS or Linux, use the following commands.
-
-```sh
-python3 -m venv .venv
-.venv/bin/python -m pip install -r requirements.txt
-```
-
-The hook reads staged file contents from Git. Fix any reported issues and stage the intended changes before retrying the commit.
-
-## Dependency changes
-
-Install dependencies from the repository root using the target workspace name.
-
-```sh
-npm install <package-name> --workspace @packages/web
-npm install <package-name> --workspace @packages/api
-```
-
-Add development dependencies with `--save-dev`. After adding a workspace or editing a dependency in a manifest, run `npm install` from the root to update the shared lockfile. Commit the updated manifest and root lockfile together. Use `npm ci` for a clean install from the committed lockfile.
-
-## Continuous integration
-
-The workflow in `.github/workflows/ci.yml` runs for pushes to any branch and pull requests targeting `main`.
-
-Its `frontend-ci` job runs on GitHub-hosted Ubuntu and performs these steps in order.
-
-1. Check out the repository.
-2. Set up Node.js using `.nvmrc` and enable npm caching using the root lockfile.
-3. Install dependencies with `npm ci`.
-4. Run `npm run lint`.
-5. Run `npm run build`.
-
-A failed installation, lint check, or build fails the job. The workflow grants read-only access to repository contents.
-
-## Future development
-
-Shared TypeScript code could live in an additional workspace such as `packages/shared`.
-
-Python modules could live under `python/` with their own dependency management and CI checks.
-
-Supabase is a database candidate. Redux Toolkit, Axios, Tailwind CSS, and Radix UI are being considered for future frontend features. Adoption of these technologies will depend on the proof of concept's requirements.
+- Wrong runtime: run `nvm install`, `nvm use`, then confirm `node --version` matches `.nvmrc` before `npm ci`.
+- API unavailable: start the backend, check port/proxy settings and inspect terminal errors. Occupied/invalid ports cause startup failure.
+- Hook inactive: run `npm run setup-hooks`; inspect `git config --local --get core.hooksPath`. Installation must have Git metadata and permission to update local Git configuration. `npm ci --ignore-scripts` intentionally skips activation; run `setup-hooks` afterward.
+- Hook tooling missing: run root `npm ci`. Hook failures do not alter staged content.
+- Run `npm run precommit` to reproduce staged checks or `npm run check` for complete CI-equivalent gates.

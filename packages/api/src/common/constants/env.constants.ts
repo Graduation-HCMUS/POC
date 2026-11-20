@@ -15,8 +15,8 @@ export const NodeEnvs = {
 export type NodeEnvs = z.infer<typeof NodeEnvsEnum>;
 
 export const Env = {
-  NODE_ENV: process.env.NODE_ENV?.toLowerCase(),
-  PORT: Number(process.env.PORT),
+  NODE_ENV: (process.env.NODE_ENV ?? 'development').toLowerCase(),
+  PORT: Number(process.env.PORT ?? 3000),
 } as const;
 
 // ========================================================================= //
@@ -27,7 +27,7 @@ const NodeEnvsEnum = z.enum(NodeEnvs, 'Not a valid node environment');
 
 const EnvSchema = z.object({
   NODE_ENV: NodeEnvsEnum,
-  PORT: z.uint32('Express port must be a positive integer'),
+  PORT: z.number().int().min(1).max(65535),
 });
 
 // ===================== Validate Environment Variables ==================== //

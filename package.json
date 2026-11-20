@@ -8,12 +8,25 @@
     "node": "24.x"
   },
   "scripts": {
-    "dev": "npm run dev --workspace @packages/web",
+    "dev": "npm run dev:web",
+    "dev:api": "npm run dev --workspace @packages/api",
+    "dev:web": "npm run dev --workspace @packages/web",
+    "lint": "npm run lint --workspaces && eslint scripts eslint.config.mjs --max-warnings 0",
+    "typecheck": "npm run typecheck --workspaces",
+    "test": "npm run test --workspaces",
     "build": "npm run build --workspace @packages/web",
-    "lint": "npm run lint --workspace @packages/web",
-    "check:staged": "git hook run pre-commit"
+    "format:check": "node scripts/format-check.mjs",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build",
+    "precommit": "node scripts/precommit.mjs",
+    "check:staged": "npm run precommit",
+    "setup-hooks": "node scripts/setup-hooks.mjs",
+    "prepare": "npm run setup-hooks"
   },
   "devDependencies": {
-    "prettier": "3.10.1"
+    "prettier": "3.10.1",
+    "eslint": "^10.14.0",
+    "@eslint/js": "^10.0.1",
+    "globals": "^17.13.0",
+    "typescript-eslint": "^8.72.1"
   }
 }

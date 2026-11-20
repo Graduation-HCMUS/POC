@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  frontend-ci:
+  workspace-ci:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -24,9 +24,7 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
           cache-dependency-path: package-lock.json
-      - name: Install dependencies
+      - name: Install dependencies and activate hooks
         run: npm ci
-      - name: Lint frontend
-        run: npm run lint
-      - name: Build frontend
-        run: npm run build
+      - name: Check workspace
+        run: npm run check

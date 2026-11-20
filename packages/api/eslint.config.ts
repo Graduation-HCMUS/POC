@@ -2,6 +2,7 @@ import js from '@eslint/js';
 import eslintConfigPrettier from 'eslint-config-prettier/flat';
 import n from 'eslint-plugin-n';
 import { defineConfig, globalIgnores } from 'eslint/config';
+import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 // ========================================================================= //
@@ -11,6 +12,14 @@ import tseslint from 'typescript-eslint';
 export default defineConfig([
   // global ignores
   globalIgnores(['**/public/**/lib/**']),
+  {
+    files: ['**/*.{js,jsx,mjs,cjs}'],
+    extends: [js.configs.recommended],
+    languageOptions: {
+      globals: globals.node,
+      parserOptions: { ecmaFeatures: { jsx: true } },
+    },
+  },
   // linting rules (code quality only)
   {
     files: ['**/*.{ts,tsx}'],

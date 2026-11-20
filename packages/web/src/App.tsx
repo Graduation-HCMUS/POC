@@ -1,14 +1,37 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import heroImg from './assets/hero.png'
 import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
 import './App.css'
+import { isHealthyResponse } from './health.ts'
 
 function App() {
   const [count, setCount] = useState(0)
 
+  const [connection, setConnection] = useState('Checking API…')
+
+  useEffect(() => {
+    const controller = new AbortController()
+    async function checkHealth() {
+      try {
+        const response = await fetch('/api/health', {
+          signal: controller.signal,
+        })
+        const body: unknown = await response.json()
+        if (!response.ok || !isHealthyResponse(body))
+          throw new Error('API unavailable')
+        setConnection('API connected')
+      } catch {
+        if (!controller.signal.aborted) setConnection('API unavailable')
+      }
+    }
+    void checkHealth()
+    return () => controller.abort()
+  }, [])
+
   return (
     <>
+      <p role="status">{connection}</p>
       <section id="center">
         <div className="hero">
           <img src={heroImg} className="base" width="170" height="179" alt="" />
