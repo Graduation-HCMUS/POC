@@ -1,0 +1,50 @@
+{
+  "name": "@packages/api",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file-if-exists=config/.env.development --watch src/main.ts",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write .",
+    "start": "node --env-file-if-exists=config/.env.production src/main.ts",
+    "test": "node ../../scripts/run-tests.mjs",
+    "typecheck": "tsc --noEmit",
+    "format:check": "prettier --check ."
+  },
+  "imports": {
+    "#src/*": "./src/*"
+  },
+  "engines": {
+    "node": "^22.18.0 || ^24.0.0 || >=26.0.0"
+  },
+  "dependencies": {
+    "express": "^5.3.0",
+    "express-zod-safe": "^3.2.1",
+    "helmet": "^8.3.0",
+    "jet-logger": "3.0.0",
+    "morgan": "^1.12.1",
+    "uuid": "^14.0.3",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@trivago/prettier-plugin-sort-imports": "^5.2.2",
+    "@types/connect-livereload": "^0.6.3",
+    "@types/express": "^5.0.6",
+    "@types/livereload": "^0.9.5",
+    "@types/morgan": "^1.9.10",
+    "@types/node": "^24.19.2",
+    "@types/supertest": "^7.2.1",
+    "connect-livereload": "^0.6.1",
+    "eslint": "^10.12.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-n": "^18.4.1",
+    "globals": "^17.13.0",
+    "jiti": "^2.7.0",
+    "livereload": "^0.10.3",
+    "prettier": "^3.9.10",
+    "supertest": "^7.3.1",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.71.1"
+  }
+}

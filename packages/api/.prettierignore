@@ -1,0 +1,4 @@
+node_modules/
+coverage/
+*.tsbuildinfo
+src/repos/common/database*.json

@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.node.json",
+  "compilerOptions": {
+    "module": "nodenext"
+  },
+  "include": ["tests/**/*.ts", "src/health.ts"]
+}
