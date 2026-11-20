@@ -17,6 +17,8 @@ export type NodeEnvs = z.infer<typeof NodeEnvsEnum>;
 export const Env = {
   NODE_ENV: (process.env.NODE_ENV ?? 'development').toLowerCase(),
   PORT: Number(process.env.PORT ?? 3000),
+  DATABASE_URL: process.env.DATABASE_URL,
+  FILE_STORAGE_DIR: process.env.FILE_STORAGE_DIR,
 } as const;
 
 // ========================================================================= //

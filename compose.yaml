@@ -1,0 +1,34 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: genie
+      POSTGRES_PASSWORD: genie_local
+      POSTGRES_DB: genie
+    ports:
+      - '127.0.0.1:55432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U genie -d genie']
+      interval: 2s
+      timeout: 3s
+      retries: 15
+  postgres-test:
+    image: postgres:16
+    profiles: [test]
+    environment:
+      POSTGRES_USER: genie
+      POSTGRES_PASSWORD: genie_local
+      POSTGRES_DB: genie_test
+    ports:
+      - '127.0.0.1:55433:5432'
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U genie -d genie_test']
+      interval: 2s
+      timeout: 3s
+      retries: 15
+volumes:
+  postgres-data:

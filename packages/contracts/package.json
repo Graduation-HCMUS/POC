@@ -1,0 +1,17 @@
+{
+  "name": "@packages/contracts",
+  "private": true,
+  "type": "module",
+  "exports": "./workflow.ts",
+  "scripts": {
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "test": "node ../../scripts/run-tests.mjs"
+  },
+  "dependencies": {
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  }
+}
