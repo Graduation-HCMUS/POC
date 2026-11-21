@@ -42,6 +42,11 @@ function json(method: 'POST' | 'PUT', body: unknown): RequestInit {
 }
 
 export const api = {
+  generate: (requirement: string) =>
+    request<{ workflow: WorkflowDraft }>(
+      '/generation',
+      json('POST', { requirement }),
+    ),
   list: (signal?: AbortSignal) =>
     request<WorkflowSummary[]>('/workflows', { signal }),
   open: (id: string, signal?: AbortSignal) =>

@@ -54,6 +54,9 @@ function toIssue(error: unknown): WorkflowIssue {
 function Workspace() {
   const [nodes, setNodes, onNodesChange] = useNodesState<CanvasNode>([])
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
+  const [requirement, setRequirement] = useState(
+    'Create a workflow that reads uploaded ticket CSV, classifies every ticket using policy v1, and returns results with manual review for missing, unknown, or ambiguous tickets.',
+  )
   const [name, setName] = useState(defaultName)
   const [id, setId] = useState<string | null>(null)
   const [version, setVersion] = useState(0)
@@ -168,6 +171,23 @@ function Workspace() {
             : entry,
         ),
       )
+    })
+  }
+
+  function generate() {
+    if (
+      dirty &&
+      !window.confirm('Replace unsaved canvas with a generated workflow?')
+    )
+      return
+    void withBusy('Generating with local qwen3:4b…', async () => {
+      const { workflow } = await api.generate(requirement)
+      const graph = fromDraft(workflow)
+      // Wait for a validated response before replacing any canvas state.
+      load(null, [])
+      setName(workflow.name)
+      setNodes(graph.nodes)
+      setEdges(graph.edges)
     })
   }
 
@@ -340,6 +360,34 @@ function Workspace() {
       )}
       <main className="workbench">
         <aside className="sidebar" aria-label="Workspace navigation">
+          <section className="inspector-section">
+            <h2>Generate classification</h2>
+            <label className="fields">
+              Requirement
+              <textarea
+                aria-label="Generation requirement"
+                value={requirement}
+                maxLength={2000}
+                rows={5}
+                disabled={locked}
+                onChange={(event) => setRequirement(event.target.value)}
+              />
+            </label>
+            <p className="muted">
+              Policy v1: billing, delivery, account; literal English/Vietnamese
+              terms. Uncertain tickets go to manual review. Review generated
+              code before running.
+            </p>
+            <button
+              className="button"
+              type="button"
+              disabled={locked || requirement.trim().length < 10}
+              onClick={generate}
+            >
+              Generate workflow
+            </button>
+          </section>
+
           <section className="sidebar-section">
             <h2>Workflows</h2>
             <button

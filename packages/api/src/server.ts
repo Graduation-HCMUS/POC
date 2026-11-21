@@ -13,6 +13,10 @@ import type { Pool } from 'pg';
 import { z } from 'zod';
 
 import { localFileStorage } from './db/file-storage.ts';
+import {
+  generateWorkflow,
+  generationRequestSchema,
+} from './generation/generate.ts';
 import { WorkflowProblem } from './workflow/problems.ts';
 import { workflowService } from './workflow/service.ts';
 
@@ -24,6 +28,7 @@ function parseId(id: string) {
 
 const statusByCode: Readonly<Partial<Record<string, number>>> = {
   INVALID_ID: 400,
+  GENERATION_BUSY: 409,
   MISSING_UPLOAD: 400,
   VERSION_CONFLICT: 409,
   WORKFLOW_NOT_FOUND: 404,
@@ -97,6 +102,20 @@ export function createApp(pool: Pool, storageDir: string) {
 
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok' });
+  });
+  app.post('/api/generation', async (req, res) => {
+    const { requirement } = generationRequestSchema.parse(req.body);
+    const result = await generateWorkflow(requirement);
+    const unavailable = result.attempts.every((attempt) => attempt.raw === '');
+    res.status(result.workflow ? 200 : unavailable ? 503 : 422).json({
+      ...result,
+      ...(result.workflow
+        ? {}
+        : {
+            code: unavailable ? 'OLLAMA_UNAVAILABLE' : 'GENERATION_INVALID',
+            message: result.attempts.at(-1)!.validationErrors.join('; '),
+          }),
+    });
   });
   app.get('/api/workflows', async (_req, res) => {
     res.json(await workflows.list());
