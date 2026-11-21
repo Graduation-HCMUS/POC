@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "format:check": "prettier --check .",
     "db:migrate": "node --env-file-if-exists=config/.env.development src/db/migrate.ts",
-    "test:integration": "node --env-file-if-exists=config/.env.development --test tests/integration/postgres.integration.ts"
+    "test:integration": "node --env-file-if-exists=config/.env.development --test tests/integration/postgres.integration.ts",
+    "evaluate:classification": "node tests/evaluate-classification.ts"
   },
   "imports": {
     "#src/*": "./src/*"
